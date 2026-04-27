@@ -1,0 +1,62 @@
+# ── Dependencies ──────────────────────────────────────────────────────────────
+node_modules/
+frontend/node_modules/
+
+# ── Build output ──────────────────────────────────────────────────────────────
+frontend/dist/
+frontend/.vite/
+frontend/coverage/
+
+# ── Python / Backend ──────────────────────────────────────────────────────────
+backend/venv/
+backend/__pycache__/
+backend/**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Environment & secrets ─────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+.env.production
+backend/.env
+
+# ── OS & editor clutter ───────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+.idea/
+.vscode/settings.json
+*.suo
+*.user
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── Misc ──────────────────────────────────────────────────────────────────────
+.cache/
+*.tmp
+*.bak
+
+# ── Databases ─────────────────────────────────────────────────────────────────
+*.db
+*.sqlite3
+backend/sql_app.db
+
+# ── Testing ───────────────────────────────────────────────────────────────────
+.pytest_cache/
+
+# ── Project Specific Temps ────────────────────────────────────────────────────
+.superpowers/
+tmp_repo/

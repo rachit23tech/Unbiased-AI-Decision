@@ -1,0 +1,266 @@
+Unbiased AI Decision
+Ensuring Fairness & Detecting Bias in Automated Decisions
+Project Documentation  ·  8-Day Sprint  ·  2-Person Team
+1. Project Overview
+Computer programs now make life-changing decisions — who gets hired, who receives a bank loan, who qualifies for medical care. When these systems learn from flawed or historically biased data, they perpetuate and amplify those exact injustices at scale.
+
+Unbiased AI Decision is a full-stack web platform that empowers data teams and organisations to audit their datasets and ML models for hidden bias. It surfaces bias metrics, provides explainability insights, and generates downloadable audit reports — making fairness accessible to every organisation regardless of their AI expertise.
+
+1.1 Objectives
+Provide an intuitive upload interface for datasets (CSV/JSON) and trained ML models
+Automatically compute industry-standard fairness metrics across sensitive attributes
+Generate clear, downloadable bias audit reports with actionable recommendations
+Enable organisations to detect and fix harmful bias before systems impact real people
+
+2. Team Roles & Responsibilities
+This project is built by a two-person team with clearly separated concerns across the full stack:
+
+
+2.1 Backend Developer — Detailed Responsibilities
+Design and maintain the PostgreSQL schema (users, datasets, analysis jobs, reports, audit log)
+Build RESTful API endpoints using FastAPI with full OpenAPI/Swagger documentation
+Implement the bias detection pipeline using Fairlearn, AIF360, and SHAP libraries
+Set up Celery + Redis for asynchronous, non-blocking bias computation jobs
+Implement JWT-based authentication with role-based access control
+Build PDF report generation using ReportLab with metric charts baked in
+Write pytest unit and integration tests targeting 70%+ coverage
+Manage Docker setup, environment variables, and cloud deployment
+
+2.2 Frontend Developer — Detailed Responsibilities
+Scaffold React 18 + Vite project with Tailwind CSS and shadcn/ui components
+Build drag-and-drop dataset and model upload interface with progress feedback
+Design and build the bias metrics dashboard with Recharts visualizations
+Implement SHAP feature-importance charts (bar and beeswarm plots)
+Build report view with downloadable PDF button and recommendation cards
+Implement login/register pages, protected routing, and user settings
+Write Vitest component tests and conduct cross-browser QA
+Deploy to Vercel/Netlify and prepare a polished demo
+
+2.3 Shared Responsibilities
+Daily 15-minute stand-up sync to align on blockers
+Agree on shared API contracts (request/response shapes) by end of Day 1
+Code review each other's PRs before merge to main
+Maintain a shared Notion/Trello board tracking tasks per day
+
+3. 8-Day Development Timeline
+Each row below defines daily deliverables for both developers. Days are designed so backend and frontend work in parallel without blocking each other — the frontend uses mock/stub data until real APIs are ready on Day 6–7.
+
+
+4. System Architecture
+4.1 High-Level Architecture
+The system follows a standard three-tier web architecture:
+
+Client (React SPA)  →  FastAPI REST API  →  PostgreSQL Database
+                            ↓
+                    Celery Worker (Bias Engine)
+                            ↓
+                    Redis (Message Broker)
+
+4.2 Backend Folder Structure
+backend/
+├── app/
+│   ├── main.py              # FastAPI app entry point
+│   ├── config.py            # Settings (env vars, DB URL, JWT secret)
+│   ├── database.py          # SQLAlchemy engine + session
+│   ├── models/              # DB models (User, Dataset, Job, Report)
+│   ├── schemas/             # Pydantic request/response schemas
+│   ├── routers/             # Route handlers (auth, datasets, jobs, reports)
+│   ├── services/            # Business logic (bias engine, PDF gen)
+│   │   ├── bias_engine.py   # Fairlearn + AIF360 metrics
+│   │   ├── shap_service.py  # SHAP explainability
+│   │   └── report_service.py# PDF generation
+│   ├── workers/             # Celery tasks
+│   └── utils/               # Helpers, validators
+├── tests/                   # pytest test suite
+├── Dockerfile
+└── requirements.txt
+
+4.3 Frontend Folder Structure
+frontend/
+├── src/
+│   ├── main.jsx             # React entry point
+│   ├── App.jsx              # Router setup
+│   ├── pages/               # Route-level components
+│   │   ├── Dashboard.jsx    # Main bias metrics overview
+│   │   ├── Upload.jsx       # Dataset + model upload
+│   │   ├── Analysis.jsx     # Job results, SHAP charts
+│   │   ├── Reports.jsx      # Report list + download
+│   │   └── Auth/            # Login, Register
+│   ├── components/          # Reusable UI components
+│   │   ├── BiasScoreCard.jsx
+│   │   ├── MetricChart.jsx
+│   │   ├── ShapChart.jsx
+│   │   └── FlagBanner.jsx
+│   ├── store/               # Zustand state slices
+│   ├── api/                 # Axios + React Query hooks
+│   └── utils/               # Formatters, constants
+├── tests/                   # Vitest tests
+└── vite.config.js
+
+5. Technology Stack
+
+6. Database Schema
+6.1 Key Tables
+users
+id (UUID PK), email (unique), hashed_password, role (admin/analyst), created_at
+
+datasets
+id (UUID PK), user_id (FK), filename, file_path, row_count, column_names (JSON), created_at
+
+analysis_jobs
+id (UUID PK), dataset_id (FK), model_id (FK nullable), status (pending/running/done/failed)
+target_column, sensitive_columns (JSON array), started_at, finished_at
+
+bias_results
+id (UUID PK), job_id (FK), metric_name, group_a_value, group_b_value, metric_value, threshold, passed (bool)
+
+reports
+id (UUID PK), job_id (FK), pdf_path, recommendations (JSON), created_at
+
+audit_log
+id (UUID PK), user_id (FK), action, resource_type, resource_id, ip_address, timestamp
+
+7. API Endpoints Reference
+All endpoints are prefixed with /api/v1. Authentication is required for all endpoints except /auth/register and /auth/login. The JWT token must be sent in the Authorization: Bearer <token> header.
+
+
+8. Bias Detection Metrics
+The bias engine computes the following fairness metrics for each pair of demographic groups across every sensitive attribute specified by the user (e.g. gender, race, age bracket):
+
+
+8.1 Overall Bias Score
+Each job produces a single Bias Score (0–100) computed as a weighted average of all metric pass/fail results. Scores are colour-coded:
+
+80–100  → LOW RISK  (green)   — Model meets fairness thresholds
+50–79   → MEDIUM RISK  (amber) — Some metrics fail; review recommended
+0–49    → HIGH RISK  (red)     — Multiple failures; model should not be deployed
+
+9. UI Screens Specification
+9.1 Screen Inventory
+Login / Register — Email + password auth, JWT stored in memory
+Dashboard — Overview cards: total analyses, avg bias score, flagged models count
+Upload Dataset — Drag-and-drop zone, CSV/JSON support, column type preview
+Configure Analysis — Select target column, sensitive attribute columns, upload optional model
+Analysis Results — Bias score gauge, per-metric breakdown table, SHAP chart
+Reports List — Table of all reports with status, score badge, download PDF button
+Report Detail — Full metrics, recommendations list, exportable
+Settings / Audit Log — User profile, role badge, paginated audit events
+
+9.2 Bias Score Gauge Component
+The score gauge is the centrepiece of the Analysis Results screen. It is a semicircular arc built with SVG + Recharts, coloured red→amber→green (0→50→80→100). The numerical score animates in on load. Below it, each metric renders as a row with a coloured pill (PASS / FAIL) and the computed value.
+
+9.3 SHAP Feature Importance Chart
+A horizontal bar chart sorted by absolute mean SHAP value. Sensitive attributes are highlighted in amber. If a sensitive attribute ranks in the top 3 features, a warning banner fires: 'Sensitive attribute is a top predictor — consider removing or transforming it.'
+
+10. Environment Setup
+10.1 Prerequisites
+Python 3.11+,  Node.js 20+,  Docker Desktop,  PostgreSQL 15+,  Redis 7+
+
+10.2 Backend Setup
+git clone <repo> && cd backend
+python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env   # fill in DATABASE_URL, JWT_SECRET, REDIS_URL
+alembic upgrade head   # run migrations
+uvicorn app.main:app --reload --port 8000
+celery -A app.workers.tasks worker --loglevel=info   # in second terminal
+
+10.3 Frontend Setup
+cd frontend
+npm install
+cp .env.example .env   # set VITE_API_URL=http://localhost:8000/api/v1
+npm run dev            # starts on http://localhost:5173
+
+10.4 Docker (Recommended)
+docker-compose up --build
+This spins up: backend (port 8000), frontend (port 5173), PostgreSQL (5432), Redis (6379).
+
+11. Testing Strategy
+11.1 Backend Tests (pytest)
+Unit tests for each bias metric calculation in isolation
+Integration tests for each API endpoint using httpx AsyncClient
+Test happy-path and error cases (invalid file, missing columns, auth failure)
+Target: ≥ 70% code coverage measured by pytest-cov
+
+11.2 Frontend Tests (Vitest)
+Component tests for BiasScoreCard, MetricChart, ShapChart, FlagBanner
+Integration tests for upload flow using Testing Library
+Mock all API calls with msw (Mock Service Worker)
+Test protected route redirects when token is absent
+
+12. Daily Completion Checklist
+Use this checklist at end of each day to confirm deliverables are production-ready before moving forward:
+
+Day 1
+☐  Backend: FastAPI app running, 3 stub endpoints returning 200
+☐  Backend: DB schema migrated, tables visible in PostgreSQL
+☐  Frontend: React app runs, routing works, design tokens applied
+☐  Shared: API contract doc created and agreed upon
+
+Day 2
+☐  Backend: /datasets/upload accepts CSV, stores file, returns dataset ID
+☐  Backend: Validation rejects malformed files with 422 error
+☐  Frontend: Upload UI complete with drag-and-drop + progress bar
+☐  Frontend: Dataset preview table renders correctly
+
+Day 3
+☐  Backend: Disparate Impact, Statistical Parity metrics computed correctly
+☐  Backend: Celery job triggered and status polled correctly
+☐  Frontend: Metrics dashboard skeleton with mock data renders
+☐  Frontend: Loading states implemented for async job polling
+
+Day 4
+☐  Backend: SHAP values computed, endpoint returns top 10 features
+☐  Backend: Auto-flagging logic marks results above threshold
+☐  Frontend: SHAP horizontal bar chart renders with amber highlights
+☐  Frontend: Bias alert banners appear for flagged metrics
+
+Day 5
+☐  Backend: PDF report generated with all metrics and charts
+☐  Backend: Recommendations engine returns 3+ actionable suggestions
+☐  Frontend: Report detail page complete with download button
+☐  Frontend: Recommendation cards UI complete
+
+Day 6
+☐  Backend: JWT login/register/refresh working with bcrypt hashing
+☐  Backend: Protected endpoints return 401 without valid token
+☐  Frontend: Login + register pages functional, token stored securely
+☐  Frontend: All routes protected, redirect to login if not authenticated
+
+Day 7
+☐  Backend: pytest suite passes, coverage ≥ 70%
+☐  Backend: All API edge cases handled with proper HTTP codes
+☐  Frontend: All Vitest tests pass
+☐  Frontend: Real API endpoints connected, no mock data in production build
+
+Day 8
+☐  Backend: Docker Compose builds and runs cleanly
+☐  Backend: Deployed to cloud, health endpoint returns 200
+☐  Frontend: Deployed to Vercel/Netlify, production build passes
+☐  Both: Demo prepared with sample dataset showing real bias detection
+
+13. Risk Register
+Performance — Bias computation is slow for large datasets
+Mitigation: Run all analysis in Celery background workers. Cap dataset size at 500K rows initially. Add chunked processing in Week 2 if needed.
+
+Fairlearn / AIF360 API changes
+Mitigation: Pin library versions in requirements.txt. Abstract the metrics layer behind a service interface so the underlying library can be swapped.
+
+CORS / API connectivity issues
+Mitigation: Configure FastAPI CORS middleware on Day 1 to allow the frontend origin. Use a .env variable so the origin is configurable per environment.
+
+Scope creep on Day 6+
+Mitigation: Feature freeze after Day 6. Any new feature requests go into a backlog and are not worked on until the core system is deployed and stable.
+
+14. Glossary
+Sensitive Attribute — A feature that defines a demographic group (e.g. gender, race, age)
+Target Column — The outcome the ML model predicts (e.g. loan_approved, hired)
+Disparate Impact — A legal fairness doctrine; a 4/5ths rule from US employment law
+SHAP — SHapley Additive exPlanations; a game-theoretic approach to model explainability
+Fairlearn — A Microsoft open-source library for ML fairness assessment
+AIF360 — IBM's AI Fairness 360 toolkit with additional bias metrics and algorithms
+Celery — A distributed task queue for Python, used here to run async bias jobs
+JWT — JSON Web Token; a compact, URL-safe method for representing authentication claims
+
+
+End of Document  —  Unbiased AI Decision v1.0
