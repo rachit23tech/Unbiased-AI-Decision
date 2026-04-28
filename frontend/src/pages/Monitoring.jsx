@@ -19,7 +19,8 @@ const DRIFT_ALERTS = [
 function generateTrend(baseScore, days) {
   const points = [];
   let score = baseScore;
-  for (let i = days; i >= 0; i -= Math.floor(days / 7)) {
+  const step = Math.max(1, Math.floor(days / 7));
+  for (let i = days; i >= 0; i -= step) {
     const jitter = (Math.sin(i * 0.7) * 4 + Math.cos(i * 1.3) * 3);
     score = Math.min(98, Math.max(20, Math.round(baseScore + jitter)));
     points.push({ day: `Day ${days - i + 1}`, score, threshold: 70 });
