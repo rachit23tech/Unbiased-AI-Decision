@@ -62,6 +62,7 @@ Every Fortune 500 company deploying AI in HR, lending, insurance, or healthcare 
 | **Explainability (SHAP)** | Shows which features drive decisions and flags protected attributes with high influence |
 | **Counterfactual Analysis** | Proves bias by showing outcome probability lift when only the protected attribute is changed |
 | **Remediation Plans** | Auto-generates step-by-step mitigation plans per attribute with severity levels |
+| **Gemini AI Insights** | Sends bias metrics to Google Gemini 1.5 Flash to generate plain-English explanations, tailored recommendations, and regulatory risk notes |
 | **Continuous Monitoring** | Tracks fairness drift over time; triggers alerts when production models degrade |
 | **Approval Workflow** | Full sign-off system with audit log for governance and legal teams |
 | **Role-Based Access** | Admin, Analyst, and Viewer roles with enforced permissions |
@@ -94,13 +95,17 @@ Every Fortune 500 company deploying AI in HR, lending, insurance, or healthcare 
                           │
 ┌─────────────────────────────────────────────────────────┐
 │                  Backend (Python/FastAPI)                 │
-│         Auth · Model Inference · Report Storage          │
+│    Auth · Model Inference · Report Storage · Gemini AI   │
 └─────────────────────────────────────────────────────────┘
+                          │
+                   Google Gemini API
+              (AI-powered bias explanations)
 ```
 
 **Tech Stack:**
 - **Frontend:** React 18, React Router 6, Zustand, Recharts, Framer Motion, Vite 6
 - **Backend:** FastAPI (Python) — API-first, connects to real ML pipelines
+- **Google AI:** Gemini 1.5 Flash via `google-generativeai` SDK — generates natural-language bias explanations and recommendations
 - **Storage:** localStorage (session/offline-first) + backend persistence
 - **Security:** Crypto-grade tokens, session expiry, rate limiting, RBAC
 - **Design:** Custom enterprise design system (CSS variables, glassmorphism dark theme)
@@ -208,7 +213,7 @@ Runs **instantly** the moment analysis completes, before the user even sees the 
 
 **URL:** `/analysis`
 
-The most detailed page in the platform. Contains seven panels:
+The most detailed page in the platform. Contains nine panels:
 
 #### Panel 1 — Overall Fairness Score (Gauge)
 Animated semicircle gauge in green/amber/red based on composite score. Score is the average of all monitored attribute scores.
@@ -234,10 +239,24 @@ Auto-detected regulations assessed against the actual score. Each regulation car
 #### Panel 6 — SHAP Feature Importance
 Horizontal bar chart showing estimated contribution of each input feature to model decisions. Protected attributes highlighted in red — instantly shows when a protected attribute is a top driver.
 
-#### Panel 7 — Counterfactual Analysis
+#### Panel 7 — Gemini AI Insights
+Powered by **Google Gemini 1.5 Flash**. Click **"Generate Insights"** to send the full bias analysis payload to Google's Gemini API, which returns:
+- **Plain-English Summary** — Non-technical stakeholder-ready explanation of the overall fairness posture
+- **Key Findings** — AI-identified problematic attributes with specific metric references
+- **Tailored Mitigation Recommendations** — 3–5 actionable, ranked steps customised to the specific bias patterns found
+- **Regulatory Risk Note** — Flags applicable regulations (GDPR, EU AI Act, ECOA, EEOC) based on the actual results
+
+The panel shows a Google-branded badge indicating the model used. If the Gemini API key is not configured, an intelligent rule-based fallback generates similar structured insights locally — ensuring the feature always works visually.
+
+**Technical implementation:**
+- Frontend sends metrics to `POST /api/v1/gemini/explain`
+- Backend `gemini_service.py` constructs a detailed prompt from the bias data and calls `google-generativeai` SDK
+- Response is rendered as formatted markdown in a glassmorphic panel with Google's signature gradient border
+
+#### Panel 8 — Counterfactual Analysis
 Only appears when bias is detected. Shows a table proving discrimination: for an identical applicant, changing only the protected attribute (e.g. Female → Male) produces a statistically significant outcome lift. This is the smoking-gun evidence required under GDPR Article 22 for mandatory explainability.
 
-#### Panel 8 — Remediation Plan
+#### Panel 9 — Remediation Plan
 Per-attribute step-by-step mitigation plans, severity-coded:
 - **Critical (red):** Immediate action required — remove feature, mandatory human review
 - **Warning (amber):** Re-weight training data, add fairness constraints
@@ -497,8 +516,10 @@ All routes are guarded server-side at the React Router level — navigating dire
 3. Point to attribute cards: *"Gender is at [X] — low risk. Age is at [X] — that's the problem attribute."*
 4. Scroll to Regulatory Compliance: *"EEOC 4/5ths rule — non-compliant. EU AI Act — non-compliant. This is what gets you fined."*
 5. Scroll to SHAP: *"Feature importance. Age is a top driver AND a protected attribute — that red bar is the smoking gun."*
-6. Scroll to Counterfactual: *"For an identical applicant, changing only their age group produces a 15% higher approval probability. That's discrimination — and under GDPR Article 22, the applicant has the right to this exact explanation."*
-7. Scroll to Remediation: *"Step-by-step fix plan. Remove age-correlated proxy features, apply equal opportunity constraint, mandate human review for age-edge cases."*
+6. Scroll to Gemini AI Insights: *"Now watch this — I click Generate Insights and Google Gemini analyses the full bias payload in real time."*
+7. Wait for Gemini to respond: *"Gemini gives us a plain-English summary, key findings with specific metric references, tailored remediation steps ranked by impact, and a regulatory risk note — all generated by AI, not hardcoded."*
+8. Scroll to Counterfactual: *"For an identical applicant, changing only their age group produces a 15% higher approval probability. That's discrimination — and under GDPR Article 22, the applicant has the right to this exact explanation."*
+9. Scroll to Remediation: *"Step-by-step fix plan. Remove age-correlated proxy features, apply equal opportunity constraint, mandate human review for age-edge cases."*
 
 ---
 
@@ -710,6 +731,7 @@ black,49,109000,798,0
 | No-code upload & analyse | ✓ | Partial | Partial | ✗ |
 | Auto-approval workflow | ✓ | ✗ | ✗ | ✗ |
 | Regulatory auto-mapping | ✓ | Partial | ✗ | ✗ |
+| **Gemini AI-powered explanations** | **✓** | ✗ | ✗ | ✗ |
 | Counterfactual explanations | ✓ | ✗ | Partial | ✓ |
 | Remediation plans | ✓ | ✗ | ✗ | Partial |
 | Real-time notification system | ✓ | ✗ | ✗ | Partial |
@@ -794,6 +816,22 @@ auth_lockout       — login attempt records per email
 analysis_history   — all analysis runs (up to 50)
 notifications      — notification history (up to 200)
 approval_params    — configured approval thresholds
+```
+
+### Environment Variables
+```
+GEMINI_API_KEY     — Google Gemini API key (backend/.env)
+                     Get one at: https://aistudio.google.com/apikey
+                     Without a key, Gemini Insights falls back to rule-based analysis
+```
+
+### Google AI Integration
+```
+Service:    Google Gemini 1.5 Flash (via google-generativeai SDK)
+Endpoint:   POST /api/v1/gemini/explain
+Backend:    app/services/gemini_service.py
+Frontend:   src/components/GeminiInsights.jsx
+Fallback:   Rule-based insights when API key is not configured
 ```
 
 ---

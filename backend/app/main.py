@@ -1,7 +1,7 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth, datasets, jobs, models, reports, audit
+from app.routers import auth, datasets, jobs, models, reports, audit, gemini
 from app.database import engine, Base
 import app.models
 
@@ -26,6 +26,7 @@ app.include_router(jobs.router, prefix="/api/v1/jobs", tags=["jobs"])
 app.include_router(models.router, prefix="/api/v1/models", tags=["models"])
 app.include_router(reports.router, prefix="/api/v1/reports", tags=["reports"])
 app.include_router(audit.router, prefix="/api/v1/audit-log", tags=["audit"])
+app.include_router(gemini.router, prefix="/api/v1/gemini", tags=["gemini"])
 
 @app.get("/health")
 def health():

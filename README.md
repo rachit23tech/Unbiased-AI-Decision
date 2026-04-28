@@ -28,6 +28,7 @@ Unbiased AI Decision is designed to close that gap. The goal is to make fairness
 - **Explainability Layer**: Highlights which features most strongly affect model predictions using SHAP. Flags risks if sensitive attributes become top predictors.
 - **Bias Audit Reports**: Generates downloadable PDF reports summarizing fairness metrics, overall bias score, and mitigation recommendations.
 - **Role-Based Authentication**: Secure access with distinct user roles (Admin, Analyst, Viewer).
+- **Gemini AI Insights**: Leverages Google's Gemini 1.5 Flash model to generate natural-language explanations of bias results, tailored mitigation strategies, and regulatory risk assessments.
 
 ## Bias Scoring Approach
 
@@ -51,6 +52,7 @@ Each analysis produces an overall bias score from `0-100`, based on weighted fai
 - **python-jose** (JWT Auth)
 - **ReportLab** (PDF Generation)
 - Fairness libraries: **Fairlearn**, **AIF360**, **SHAP**, **Pandas**
+- **Google Gemini API** (`google-generativeai`) — AI-powered bias explanations & recommendations
 - Deployed on **Google Cloud Run**
 
 ---

@@ -11,6 +11,7 @@ import FlagBanner from "../components/FlagBanner";
 import GaugeChart from "../components/GaugeChart";
 import MetricChart from "../components/MetricChart";
 import RemediationModal from "../components/RemediationModal";
+import GeminiInsights from "../components/GeminiInsights";
 
 // ── Compliance rules ──────────────────────────────────────────────────────────
 const REGULATIONS = [
@@ -601,6 +602,9 @@ export default function Analysis() {
 
       {/* SHAP feature importance */}
       <ShapPanel result={result} />
+
+      {/* Gemini AI Insights */}
+      <GeminiInsights result={result} />
 
       {/* Counterfactual analysis */}
       <CounterfactualPanel result={result} />

@@ -18,3 +18,4 @@ reportlab==4.0.7
 pytest==7.4.3
 httpx==0.25.2
 email-validator==2.1.0.post1
+google-generativeai==0.8.3
