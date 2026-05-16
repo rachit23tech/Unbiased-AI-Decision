@@ -1,6 +1,6 @@
 # Unbiased AI Decision
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-Frontend-blue?style=for-the-badge)](https://ai-unbaiser.netlify.app/)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Frontend-blue?style=for-the-badge)]([https://ai-unbaiser.netlify.app/](https://ornate-jelly-204b6d.netlify.app/login))
 [![API Status](https://img.shields.io/badge/API-Live_on_Cloud_Run-green?style=for-the-badge)](https://unbiased-ai-backend-393608700696.us-central1.run.app/health)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
 
@@ -10,7 +10,7 @@ Unbiased AI Decision helps teams detect, explain, and document bias in automated
 
 ## 🔗 Live Deployments
 
-- **Frontend**: [https://ai-unbaiser.netlify.app/](https://ai-unbaiser.netlify.app/)
+- **Frontend**: [https://ai-unbaiser.netlify.app/]((https://ornate-jelly-204b6d.netlify.app/))
 - **Backend API**: [https://unbiased-ai-backend-393608700696.us-central1.run.app](https://unbiased-ai-backend-393608700696.us-central1.run.app)
 
 ---
